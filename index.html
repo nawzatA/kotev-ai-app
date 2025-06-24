@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>כותב +AI - עוזר כתיבת החיבורים שלך</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .steps-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .step-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .step-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #667eea;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .textarea-large {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .feedback {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .feedback h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .feedback ul {
+            color: #388e3c;
+            padding-right: 20px;
+        }
+
+        .tips {
+            background: linear-gradient(45deg, #fff3e0, #ffcc80);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tips h4 {
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>כותב +AI <span class="emoji">✍️</span></h1>
+            <p>העוזר החכם שלך לכתיבת חיבורים מעולים!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 25%"></div>
+            </div>
+
+            <div class="steps-nav">
+                <button class="step-btn active" onclick="showStep(1)">1. תכנון <span class="emoji">🎯</span></button>
+                <button class="step-btn" onclick="showStep(2)">2. כתיבה <span class="emoji">✏️</span></button>
+                <button class="step-btn" onclick="showStep(3)">3. עריכה <span class="emoji">🔍</span></button>
+                <button class="step-btn" onclick="showStep(4)">4. סיום <span class="emoji">🎉</span></button>
+            </div>
+
+            <!-- שלב 1: תכנון -->
+            <div class="step-content active" id="step1">
+                <div class="card">
+                    <h3>בואו נתכנן את החיבור שלך! <span class="emoji">📝</span></h3>
+                    
+                    <div class="input-group">
+                        <label for="essayType">איזה סוג חיבור אתה כותב?</label>
+                        <select id="essayType" onchange="updateTips()">
+                            <option value="">בחר סוג חיבור...</option>
+                            <option value="opinion">חיבור עמדה</option>
+                            <option value="compare">חיבור השוואה</option>
+                            <option value="literary">ניתוח ספרותי</option>
+                            <option value="research">חיבור מחקר</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="topic">מה הנושא של החיבור?</label>
+                        <input type="text" id="topic" placeholder="למשל: השפעת הטכנולוגיה על החברה המודרנית">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mainIdea">מה הרעיון המרכזי שלך?</label>
+                        <textarea id="mainIdea" placeholder="תאר בכמה משפטים את הרעיון העיקרי שלך..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="arguments">רשום 3 טיעונים עיקריים:</label>
+                        <textarea id="arguments" placeholder="טיעון 1: ...&#10;טיעון 2: ...&#10;טיעון 3: ..."></textarea>
+                    </div>
+
+                    <button class="btn-primary" onclick="generateOutline()">צור מתווה לחיבור <span class="emoji">🚀</span></button>
+
+                    <div id="outlineFeedback"></div>
+                </div>
+
+                <div class="tips" id="planningTips">
+                    <h4>💡 טיפים לתכנון חיבור מוצלח:</h4>
+                    <ul>
+                        <li>התחיל עם רעיון ברור ומוגדר</li>
+                        <li>חשוב על 3 טיעונים חזקים התומכים ברעיון שלך</li>
+                        <li>חפש דוגמאות ומקורות לכל טיעון</li>
+                        <li>תכנן את סדר הטיעונים - מהחלש לחזק</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- שלב 2: כתיבה -->
+            <div class="step-content" id="step2">
+                <div class="card">
+                    <h3>עכשיו בואו נכתוב! <span class="emoji">✍️</span></h3>
+                    
+                    <div class="input-group">
+                        <label for="introduction">הקדמה:</label>
+                        <textarea id="introduction" class="textarea-large" 
+                                placeholder="התחל במשפט מעניין שיושך את הקורא...&#10;הצג את הנושא...&#10;סיים עם המשפט המרכזי (תזה)..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="body1">פסקת גוף ראשונה:</label>
+                        <textarea id="body1" class="textarea-large" 
+                                placeholder="הצג את הטיעון הראשון...&#10;הוסף דוגמאות ומקורות...&#10;הסבר למה זה תומך בתזה שלך..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="body2">פסקת גוף שנייה:</label>
+                        <textarea id="body2" class="textarea-large" 
+                                placeholder="הצג את הטיעון השני..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="body3">פסקת גוף שלישית:</label>
+                        <textarea id="body3" class="textarea-large" 
+                                placeholder="הצג את הטיעון השלישי..."></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="conclusion">מסקנה:</label>
+                        <textarea id="conclusion" class="textarea-large" 
+                                placeholder="סכם את הטיעונים העיקריים...&#10;חזור על התזה במילים אחרות...&#10;סיים עם מחשבה לעתיד או קריאה לפעולה..."></textarea>
+                    </div>
+
+                    <button class="btn-primary" onclick="analyzeWriting()">בדוק את הכתיבה שלי <span class="emoji">🔍</span></button>
+
+                    <div id="writingFeedback"></div>
+                </div>
+
+                <div class="tips">
+                    <h4>💡 טיפים לכתיבה זורמת:</h4>
+                    <ul>
+                        <li>כל פסקה צריכה להתחיל במשפט נושא ברור</li>
+                        <li>השתמש במילות חיבור: "בנוסף", "לעומת זאת", "לכן"</li>
+                        <li>תן דוגמאות קונקרטיות לכל טיעון</li>
+                        <li>שמור על זרימה לוגית בין הפסקאות</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- שלב 3: עריכה -->
+            <div class="step-content" id="step3">
+                <div class="card">
+                    <h3>בואו נשפר את החיבור! <span class="emoji">🔧</span></h3>
+                    
+                    <div class="input-group">
+                        <label for="fullEssay">הדבק כאן את החיבור המלא לבדיקה:</label>
+                        <textarea id="fullEssay" class="textarea-large" 
+                                placeholder="הדבק כאן את כל החיבור..."></textarea>
+                    </div>
+
+                    <button class="btn-primary" onclick="checkEssay()">בדוק דקדוק ומבנה <span class="emoji">🎯</span></button>
+
+                    <div id="editingFeedback"></div>
+                </div>
+
+                <div class="tips">
+                    <h4>🔍 רשימת בדיקות לעריכה:</h4>
+                    <ul>
+                        <li>✅ בדוק שגיאות כתיב ודקדוק</li>
+                        <li>✅ וודא שכל פסקה מתחילה במשפט נושא</li>
+                        <li>✅ בדוק שהמעברים בין פסקאות חלקים</li>
+                        <li>✅ וודא שהמסקנה מסכמת את כל הטיעונים</li>
+                        <li>✅ קרא בקול רם לבדיקת זרימה</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- שלב 4: סיום -->
+            <div class="step-content" id="step4">
+                <div class="card">
+                    <h3>מזל טוב! החיבור שלך מוכן! <span class="emoji">🎉</span></h3>
+                    
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 4em; margin-bottom: 20px;">🏆</div>
+                        <h2 style="color: #667eea; margin-bottom: 20px;">עבודה מעולה!</h2>
+                        <p style="font-size: 1.2em; margin-bottom: 30px;">
+                            עברת את כל השלבים בהצלחה. החיבור שלך מוכן להגשה!
+                        </p>
+                        
+                        <div class="card" style="background: #f8f9fa; margin: 20px 0;">
+                            <h4>📊 סיכום התהליך:</h4>
+                            <div id="processSummary">
+                                <p>✅ תכננת את החיבור שלך</p>
+                                <p>✅ כתבת את כל החלקים</p>
+                                <p>✅ ערכת ושיפרת</p>
+                                <p>✅ החיבור מוכן להגשה!</p>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" onclick="downloadEssay()">הורד את החיבור <span class="emoji">💾</span></button>
+                        <button class="btn-primary" onclick="startNew()" style="margin-right: 10px;">התחל חיבור חדש <span class="emoji">🔄</span></button>
+                    </div>
+                </div>
+
+                <div class="tips">
+                    <h4>🚀 טיפים לפעם הבאה:</h4>
+                    <ul>
+                        <li>שמור את המתווה - זה יעזור לך בחיבורים הבאים</li>
+                        <li>קרא חיבורים טובים לשיפור הסגנון</li>
+                        <li>תרגל כתיבה קצרה יום יום</li>
+                        <li>אל תשכח לערוך תמיד לפני הגשה!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let essayData = {};
+
+        function showStep(stepNumber) {
+            // הסתר את כל השלבים
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step${i}`).classList.remove('active');
+                document.querySelector(`.step-btn:nth-child(${i})`).classList.remove('active');
+            }
+            
+            // הצג את השלב הנבחר
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+            document.querySelector(`.step-btn:nth-child(${stepNumber})`).classList.add('active');
+            
+            currentStep = stepNumber;
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const progress = (currentStep / 4) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function updateTips() {
+            const essayType = document.getElementById('essayType').value;
+            const tipsElement = document.getElementById('planningTips');
+            
+            const tips = {
+                opinion: {
+                    title: '💡 טיפים לחיבור עמדה:',
+                    content: [
+                        'בחר עמדה ברורה ועמוד עליה לאורך כל החיבור',
+                        'הצג טיעונים חזקים ומשכנעים',
+                        'התייחס לעמדות נגדיות וחזק את עמדתך',
+                        'השתמש בדוגמאות אישיות או מהחיים'
+                    ]
+                },
+                compare: {
+                    title: '💡 טיפים לחיבור השוואה:',
+                    content: [
+                        'בחר נקודות השוואה ברורות ועקביות',
+                        'השווה באופן הוגן ומאוזן',
+                        'ארגן לפי נושאים או לפי פריטים',
+                        'הסק מסקנות מהשוואות'
+                    ]
+                },
+                literary: {
+                    title: '💡 טיפים לניתוח ספרותי:',
+                    content: [
+                        'התמקד בנושא או מוטיב מרכזי',
+                        'הביא ציטוטים מדויקים מהטקסט',
+                        'נתח אמצעים ספרותיים',
+                        'קשר בין הטכניקה למסר'
+                    ]
+                }
+            };
+
+            if (tips[essayType]) {
+                tipsElement.innerHTML = `
+                    <h4>${tips[essayType].title}</h4>
+                    <ul>
+                        ${tips[essayType].content.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
+                `;
+            }
+        }
+
+        function generateOutline() {
+            const topic = document.getElementById('topic').value;
+            const mainIdea = document.getElementById('mainIdea').value;
+            const arguments = document.getElementById('arguments').value;
+
+            if (!topic || !mainIdea || !arguments) {
+                alert('אנא מלא את כל השדות כדי לקבל מתווה מותאם!');
+                return;
+            }
+
+            const feedback = document.getElementById('outlineFeedback');
+            feedback.innerHTML = `
+                <div class="feedback">
+                    <h4>🎯 המתווה שלך מוכן!</h4>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <h5>📝 מבנה החיבור המומלץ:</h5>
+                        <p><strong>הקדמה:</strong> הצגת הנושא "${topic}" והרעיון המרכזי</p>
+                        <p><strong>פסקת גוף 1:</strong> ${arguments.split('\n')[0] || 'הטיעון הראשון'}</p>
+                        <p><strong>פסקת גוף 2:</strong> ${arguments.split('\n')[1] || 'הטיעון השני'}</p>
+                        <p><strong>פסקת גוף 3:</strong> ${arguments.split('\n')[2] || 'הטיעון השלישי'}</p>
+                        <p><strong>מסקנה:</strong> סיכום הטיעונים וחיזוק הרעיון המרכזי</p>
+                    </div>
+                    <p style="margin-top: 15px;">💪 נהדר! עכשיו אתה מוכן לעבור לשלב הכתיבה!</p>
+                </div>
+            `;
+
+            // שמירת הנתונים
+            essayData = { topic, mainIdea, arguments };
+        }
+
+        function analyzeWriting() {
+            const intro = document.getElementById('introduction').value;
+            const body1 = document.getElementById('body1').value;
+            const body2 = document.getElementById('body2').value;
+            const body3 = document.getElementById('body3').value;
+            const conclusion = document.getElementById('conclusion').value;
+
+            const feedback = document.getElementById('writingFeedback');
+            
+            let score = 0;
+            let suggestions = [];
+
+            // בדיקות בסיסיות
+            if (intro.length > 100) score += 20;
+            else suggestions.push('הקדמה קצרה מדי - הוסף עוד פרטים');
+
+            if (body1.length > 150 && body2.length > 150 && body3.length > 150) score += 30;
+            else suggestions.push('פסקאות הגוף צריכות להיות מפורטות יותר');
+
+            if (conclusion.length > 100) score += 20;
+            else suggestions.push('מסקנה קצרה מדי - הוסף סיכום של הטיעונים');
+
+            if (intro.includes('בנוסף') || intro.includes('לכן') || intro.includes('לעומת זאת')) score += 15;
+            else suggestions.push('השתמש במילות חיבור לזרימה טובה יותר');
+
+            if (score < 50) suggestions.push('קרא את החיבור בקול רם לבדיקת זרימה');
+
+            score = Math.min(score + 15, 100); // בונוס בסיסי
+
+            feedback.innerHTML = `
+                <div class="feedback">
+                    <h4>📊 ניתוח הכתיבה שלך: ${score}/100</h4>
+                    ${suggestions.length > 0 ? `
+                        <h5>💡 הצעות לשיפור:</h5>
+                        <ul>
+                            ${suggestions.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    ` : '<p>🎉 כתיבה מעולה! החיבור נראה טוב!</p>'}
+                    <p style="margin-top: 15px;">
+                        ${score >= 80 ? '🏆 מעולה! מוכן לעבור לשלב העריכה!' : 
+                          score >= 60 ? '👍 טוב! עוד קצת שיפורים ותהיה מוכן!' : 
+                          '💪 כיוון טוב! תמשיך לשפר!'}
+                    </p>
+                </div>
+            `;
+        }
+
+        function checkEssay() {
+            const essay = document.getElementById('fullEssay').value;
+            
+            if (!essay.trim()) {
+                alert('אנא הדבק את החיבור שלך לבדיקה!');
+                return;
+            }
+
+            const feedback = document.getElementById('editingFeedback');
+            
+            // בדיקות בסיסיות
+            const wordCount = essay.split(' ').length;
+            const paragraphs = essay.split('\n\n').length;
+            
+            let issues = [];
+            let strengths = [];
+
+            // בדיקת אורך
+            if (wordCount < 300) issues.push('החיבור קצר מדי - הוסף עוד פרטים ודוגמאות');
+            else if (wordCount > 800) issues.push('החיבור ארוך מדי - נסה לקצר ולהתמקד');
+            else strengths.push('אורך החיבור מתאים');
+
+            // בדיקת מבנה
+            if (paragraphs < 4) issues.push('חסרות פסקאות - וודא שיש לך הקדמה, 3 פסקאות גוף ומסקנה');
+            else strengths.push('מבנה פסקאות תקין');
+
+            // בדיקות נוספות
+            if (essay.includes('לכן') || essay.includes('בנוסף') || essay.includes('לעומת זאת')) {
+                strengths.push('שימוש טוב במילות חיבור');
+            } else {
+                issues.push('הוסף מילות חיבור לזרימה טובה יותר');
+            }
+
+            feedback.innerHTML = `
+                <div class="feedback">
+                    <h4>🔍 תוצאות הבדיקה:</h4>
+                    <p><strong>📊 סטטיסטיקות:</strong> ${wordCount} מילים, ${paragraphs} פסקאות</p>
+                    
+                    ${strengths.length > 0 ? `
+                        <h5 style="color: #2e7d32;">✅ נקודות חזק:</h5>
+                        <ul style="color: #388e3c;">
+                            ${strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                    
+                    ${issues.length > 0 ? `
+                        <h5 style="color: #d32f2f;">⚠️ נקודות לשיפור:</h5>
+                        <ul style="color: #c62828;">
+                            ${issues.map(i => `<li>${i}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                    
+                    <p style="margin-top: 15px;">
+                        ${issues.length === 0 ? '🎉 החיבור נראה מעולה! מוכן להגשה!' : 
+                          issues.length <= 2 ? '👍 כמעט מושלם! תקן את הנקודות האלה ותהיה מוכן!' : 
+                          '💪 יש עוד מה לשפר, אבל אתה בכיוון הנכון!'}
+                    </p>
+                </div>
+            `;
+        }
+
+        function downloadEssay() {
+            const essay = document.getElementById('fullEssay').value || 
+                         'החיבור שלך מוכן! אנא חזור לשלב הכתיבה להשלמת התוכן.';
+            
+            const blob = new Blob([essay], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'החיבור-שלי.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function startNew() {
+            if (confirm('האם אתה בטוח שאתה רוצה להתחיל חיבור חדש? הנתונים הנוכחיים יימחקו.')) {
+                // איפוס כל השדות
+                document.getElementById('essayType').value = '';
+                document.getElementById('topic').value = '';
+                document.getElementById('mainIdea').value = '';
+                document.getElementById('arguments').value = '';
+                document.getElementById('introduction').value = '';
+                document.getElementById('body1').value = '';
+                document.getElementById('body2').value = '';
+                document.getElementById('body3').value = '';
+                document.getElementById('conclusion').value = '';
+                document.getElementById('fullEssay').value = '';
+                
+                // איפוס משוב
+                document.getElementById('outlineFeedback').innerHTML = '';
+                document.getElementById('writingFeedback').innerHTML = '';
+                document.getElementById('editingFeedback').innerHTML = '';
+                
+                // חזרה לשלב ראשון
+                showStep(1);
+                essayData = {};
+                
+                alert('🎉 מוכן להתחיל חיבור חדש!');
+            }
+        }
+
+        // הוספת אפקטים אינטראקטיביים
+        document.addEventListener('DOMContentLoaded', function() {
+            // אנימציה לכפתורים
+            const buttons = document.querySelectorAll('.btn-primary');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // שמירה אוטומטית
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const data = {};
+                    inputs.forEach(inp => {
+                        if (inp.value) data[inp.id] = inp.value;
+                    });
+                    // בסביבה אמיתית נשמור ב-localStorage
+                    // localStorage.setItem('essayDraft', JSON.stringify(data));
+                });
+            });
+
+            // הודעות עידוד
+            const encouragements = [
+                "אתה עושה עבודה נהדרת! 💪",
+                "המשך כך - זה נראה מעולה! 🌟", 
+                "כתיבה זורמת וברורה! 👏",
+                "אתה על הדרך הנכונה! 🎯",
+                "עוד קצת ותסיים! 🚀"
+            ];
+
+            // הצגת הודעת עידוד אקראית
+            function showEncouragement() {
+                const message = encouragements[Math.floor(Math.random() * encouragements.length)];
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: linear-gradient(45deg, #667eea, #764ba2);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-weight: bold;
+                    z-index: 1000;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    animation: slideDown 0.5s ease;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideUp 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+
+            // הצגת עידוד כל 2 דקות של כתיבה
+            let typingTimer;
+            inputs.forEach(input => {
+                if (input.tagName === 'TEXTAREA') {
+                    input.addEventListener('input', function() {
+                        clearTimeout(typingTimer);
+                        typingTimer = setTimeout(() => {
+                            if (this.value.length > 50) {
+                                showEncouragement();
+                            }
+                        }, 120000); // 2 דקות
+                    });
+                }
+            });
+        });
+
+        // הוספת סטיילים לאנימציות
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    transform: translateX(-50%) translateY(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideUp {
+                from {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(-50%) translateY(-100%);
+                    opacity: 0;
+                }
+            }
+
+            .input-group input:focus,
+            .input-group textarea:focus,
+            .input-group select:focus {
+                animation: glow 0.3s ease;
+            }
+
+            @keyframes glow {
+                0% { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0); }
+                50% { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3); }
+                100% { box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+            }
+
+            .card {
+                transition: transform 0.2s ease;
+            }
+
+            .card:hover {
+                transform: translateY(-2px);
+            }
+
+            /* רספונסיביות למובייל */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+                
+                .header h1 {
+                    font-size: 2em;
+                }
+                
+                .steps-nav {
+                    flex-wrap: wrap;
+                    gap: 5px;
+                }
+                
+                .step-btn {
+                    font-size: 14px;
+                    padding: 10px 15px;
+                }
+                
+                .main-content {
+                    padding: 20px;
+                }
+                
+                .card {
+                    padding: 20px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .header h1 {
+                    font-size: 1.8em;
+                }
+                
+                .step-btn {
+                    font-size: 12px;
+                    padding: 8px 12px;
+                }
+                
+                .step-btn .emoji {
+                    display: none;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+                
